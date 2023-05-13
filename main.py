@@ -497,7 +497,7 @@ def Guvohnoma_raqami(update: Update, context: CallbackContext):
         "seriya_number": f"{context.user_data['guvohnoma_raqami'].upper()}",
 
     }
-    print(data)
+    print(data['seriya'])
 
     police(data)
     update.message.reply_text("Sizning guvohnomangiz yaratildi")
