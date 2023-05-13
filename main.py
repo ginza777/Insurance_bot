@@ -1,22 +1,34 @@
 import os.path
 from datetime import date
-TOKEN='5589953901:AAFord8iZRUKRR_watghmHbplzgCikp4bPs'
-from telegram import ReplyKeyboardMarkup, Update,ReplyKeyboardRemove
+import environ
+import os
+from telegram import ReplyKeyboardMarkup, Update, ReplyKeyboardRemove
 import random
-from telegram.ext import CallbackContext, CommandHandler, MessageHandler, Filters, ConversationHandler,Updater
+from telegram.ext import CallbackContext, CommandHandler, MessageHandler, Filters, ConversationHandler, Updater
 from telegram import Bot
-bot = Bot(TOKEN)
+
 # Insurance company name
 gros = "GROSS SUG'URTA KOMPANIYASI AJ Toshkent sh., A.Temur koch., 1-chi tor koch., 6 uy"
 uzbekinvest = """O'ZBEKINVEST" AJ EKSPORT-IMPORT SUG'URTA KOMPANIYASI" AKSIYADORLIK JAMIYATI"""
-oy=['oy','Yanvar','Fevral','Mart','Aprel','May','Iyun','Iyul','Avgust','Sentabr','Oktabr','Noyabr','Dekabr']
+oy = ['oy', 'Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'Iyun', 'Iyul', 'Avgust', 'Sentabr', 'Oktabr', 'Noyabr',
+      'Dekabr']
 company_name = [gros, uzbekinvest]
 from reportlab.lib.pagesizes import letter
 from PIL import Image, ImageDraw, ImageFont
 from reportlab.pdfgen import canvas
 
+env = environ.Env(
+    # set casting, default value
+    DEBUG=(bool, False)
+)
 
-def pdf(img1, img2,kod):
+environ.Env.read_env()
+
+TOKEN = env("TOKEN")
+bot = Bot(TOKEN)
+
+
+def pdf(img1, img2, kod):
     image_files = [img1, img2]
     pdf_filename = f"insuranses/insurance-{kod}.pdf"
     canvas_obj = canvas.Canvas(pdf_filename)
@@ -40,10 +52,8 @@ def pdf(img1, img2,kod):
     # save the PDF file
     canvas_obj.save()
 
-
-
-
     return pdf_filename
+
 
 def police(data):
     today = date.today()
@@ -125,8 +135,8 @@ def police(data):
     draw.text(position3, text_company_name, font=font, fill=color)
     draw.text(position4, text_user_name, font=font, fill=color)
     # Save the modified image
-    name1='1img.jpg'
-    name2='2img.jpg'
+    name1 = '1img.jpg'
+    name2 = '2img.jpg'
     if os.path.exists(name1):
         os.remove(name1)
     if os.path.exists(name2):
@@ -134,9 +144,8 @@ def police(data):
     #
     img.save(name1)
     img2.save(name2)
-    kod=data['seriya']
-    pdf('1img.jpg', '2img.jpg',kod)
-
+    kod = data['seriya']
+    pdf('1img.jpg', '2img.jpg', kod)
 
 
 def start_command(update, context):
@@ -146,8 +155,7 @@ def start_command(update, context):
     return '0'
 
 
-
-#umumiy message qaytaruvchi funksiya
+# umumiy message qaytaruvchi funksiya
 def message_police(data):
     simbol = "❓❓❓❓❓❓"
     # seriya is not exist
@@ -266,19 +274,20 @@ def New_police(update, context):
     data = context.user_data
     msg = message_police(data)
     chat_id = update.message.chat_id
-    message = context.bot.send_message(chat_id=chat_id, text=f"{msg}\n1.Qaysi kundan boshlab :",reply_markup=ReplyKeyboardMarkup([['Bugundan_boshlab']],resize_keyboard=True))
-    context.user_data['message_id'] =message.message_id
+    message = context.bot.send_message(chat_id=chat_id, text=f"{msg}\n1.Qaysi kundan boshlab :",
+                                       reply_markup=ReplyKeyboardMarkup([['Bugundan_boshlab']], resize_keyboard=True))
+    context.user_data['message_id'] = message.message_id
     context.user_data['chat_id'] = chat_id
     return '1'
 
 
 def From_time(update: Update, context: CallbackContext):
-    txt= update.message.text
+    txt = update.message.text
     if txt == 'Bugundan_boshlab':
         today = date.today()
         today_int = int(today.strftime("%d"))
         context.user_data['vaqtdan'] = today_int
-        context.user_data['gacha'] = today_int-1
+        context.user_data['gacha'] = today_int - 1
     elif txt != 'Bugundan_boshlab':
         try:
             context.user_data['vaqtdan'] = int(update.message.text)
@@ -291,10 +300,11 @@ def From_time(update: Update, context: CallbackContext):
     data = context.user_data
     msg = message_police(data)
     chat_id = update.message.chat_id
-    message = context.bot.send_message(chat_id=chat_id, text=msg + "3.Sug'urta kompaniyasini tanlang:",reply_markup=ReplyKeyboardMarkup([company_name], resize_keyboard=True))
+    message = context.bot.send_message(chat_id=chat_id, text=msg + "3.Sug'urta kompaniyasini tanlang:",
+                                       reply_markup=ReplyKeyboardMarkup([company_name], resize_keyboard=True))
     context.bot.delete_message(chat_id=chat_id, message_id=context.user_data['message_id'])
     context.bot.delete_message(chat_id=chat_id, message_id=update.message.message_id)
-    context.user_data['message_id'] =message.message_id
+    context.user_data['message_id'] = message.message_id
     return '2'
 
 
@@ -303,10 +313,11 @@ def Company_name(update: Update, context: CallbackContext):
     data = context.user_data
     msg = message_police(data)
     chat_id = update.message.chat_id
-    message = context.bot.send_message(chat_id=chat_id, text=msg + "4.Ismingizni kiriting :",reply_markup=ReplyKeyboardRemove())
+    message = context.bot.send_message(chat_id=chat_id, text=msg + "4.Ismingizni kiriting :",
+                                       reply_markup=ReplyKeyboardRemove())
     context.bot.delete_message(chat_id=chat_id, message_id=context.user_data['message_id'])
     context.bot.delete_message(chat_id=chat_id, message_id=update.message.message_id)
-    context.user_data['message_id'] =message.message_id
+    context.user_data['message_id'] = message.message_id
 
     return '3'
 
@@ -316,12 +327,12 @@ def Name(update: Update, context: CallbackContext):
     data = context.user_data
     msg = message_police(data)
 
-
     chat_id = update.message.chat_id
-    message = context.bot.send_message(chat_id=chat_id, text=msg + "5.Familiyangizni kiriting :",reply_markup=ReplyKeyboardRemove())
+    message = context.bot.send_message(chat_id=chat_id, text=msg + "5.Familiyangizni kiriting :",
+                                       reply_markup=ReplyKeyboardRemove())
     context.bot.delete_message(chat_id=chat_id, message_id=context.user_data['message_id'])
     context.bot.delete_message(chat_id=chat_id, message_id=update.message.message_id)
-    context.user_data['message_id'] =message.message_id
+    context.user_data['message_id'] = message.message_id
     return '4'
 
 
@@ -331,11 +342,11 @@ def Surname(update: Update, context: CallbackContext):
     msg = message_police(data)
 
     chat_id = update.message.chat_id
-    message = context.bot.send_message(chat_id=chat_id, text=msg + "6.Otasining ismini kiriting :",reply_markup=ReplyKeyboardMarkup([['XXX']], resize_keyboard=True))
+    message = context.bot.send_message(chat_id=chat_id, text=msg + "6.Otasining ismini kiriting :",
+                                       reply_markup=ReplyKeyboardMarkup([['XXX']], resize_keyboard=True))
     context.bot.delete_message(chat_id=chat_id, message_id=context.user_data['message_id'])
     context.bot.delete_message(chat_id=chat_id, message_id=update.message.message_id)
-    context.user_data['message_id'] =message.message_id
-
+    context.user_data['message_id'] = message.message_id
 
     return '5'
 
@@ -360,7 +371,6 @@ def Phone_number(update: Update, context: CallbackContext):
     data = context.user_data
     msg = message_police(data)
 
-
     chat_id = update.message.chat_id
     message = context.bot.send_message(chat_id=chat_id, text=msg + "8.Modelini kiriting :",
                                        reply_markup=ReplyKeyboardRemove())
@@ -374,7 +384,6 @@ def Model(update: Update, context: CallbackContext):
     context.user_data['model'] = update.message.text
     data = context.user_data
     msg = message_police(data)
-
 
     chat_id = update.message.chat_id
     message = context.bot.send_message(chat_id=chat_id, text=msg + "9.Yilini kiriting :",
@@ -390,7 +399,6 @@ def Year(update: Update, context: CallbackContext):
     data = context.user_data
     msg = message_police(data)
 
-
     chat_id = update.message.chat_id
     message = context.bot.send_message(chat_id=chat_id, text=msg + "10.Davlat raqamini kiriting :",
                                        reply_markup=ReplyKeyboardRemove())
@@ -404,7 +412,6 @@ def Davlat_raqami(update: Update, context: CallbackContext):
     context.user_data['davlat_raqami'] = update.message.text
     data = context.user_data
     msg = message_police(data)
-
 
     chat_id = update.message.chat_id
     message = context.bot.send_message(chat_id=chat_id, text=msg + "11.Divigatel raqamini kiriting :",
@@ -420,7 +427,6 @@ def Motor(update: Update, context: CallbackContext):
     data = context.user_data
     msg = message_police(data)
 
-
     chat_id = update.message.chat_id
     message = context.bot.send_message(chat_id=chat_id, text=msg + "12.Kuzov raqamini kiriting :",
                                        reply_markup=ReplyKeyboardRemove())
@@ -434,8 +440,6 @@ def Kuzov_raqami(update: Update, context: CallbackContext):
     context.user_data['kuzov_raqami'] = update.message.text
     data = context.user_data
     msg = message_police(data)
-
-
 
     chat_id = update.message.chat_id
     message = context.bot.send_message(chat_id=chat_id, text=msg + "13.Guvohnoma seriyasini kiriting :",
@@ -451,7 +455,6 @@ def Guvohnoma_seriya(update: Update, context: CallbackContext):
     data = context.user_data
     msg = message_police(data)
 
-
     chat_id = update.message.chat_id
     message = context.bot.send_message(chat_id=chat_id, text=msg + "14.Guvohnoma raqamini kiriting :",
                                        reply_markup=ReplyKeyboardRemove())
@@ -466,120 +469,118 @@ def Guvohnoma_raqami(update: Update, context: CallbackContext):
     data = context.user_data
     msg = message_police(data)
 
-
     chat_id = update.message.chat_id
     message = context.bot.send_message(chat_id=chat_id, text=msg + "15.Sizning sug'urtangiz  yaratildi",
-                                       reply_markup=ReplyKeyboardMarkup([['/start'],['New police']], resize_keyboard=True))
+                                       reply_markup=ReplyKeyboardMarkup([['/start'], ['New police']],
+                                                                        resize_keyboard=True))
     context.bot.delete_message(chat_id=chat_id, message_id=context.user_data['message_id'])
     context.bot.delete_message(chat_id=chat_id, message_id=update.message.message_id)
     context.user_data['message_id'] = message.message_id
 
-
-    driver=[]
+    driver = []
     driver.append(context.user_data['ismi'].upper())
     driver.append(context.user_data['familiyasi'].upper())
     driver.append(context.user_data['otasining_ismi'].upper())
-    data={
-        "seriya":f"{context.user_data['seriya']}",
-        "date_from":f"{context.user_data['vaqtdan']}",
-        "date_to":f"{context.user_data['gacha']}",
-        "company_name":f"{context.user_data['company_name']}",
-        "phone_number":f"{context.user_data['phone']}",
-        "car_marka":f"{context.user_data['model'].upper()}",
-        "car_year":f"{context.user_data['yili']}",
-        "car_number":f"{context.user_data['davlat_raqami'].upper()}",
-        "car_dvigatel":f"{context.user_data['dvigatel_raqami'].upper()}",
-        "car_kuzov":f"{context.user_data['kuzov_raqami'].upper()}",
-        "driver":driver,
-        "seriya_card":f"{context.user_data['guvohnoma_seriya'].upper()}",
-        "seriya_number":f"{context.user_data['guvohnoma_raqami'].upper()}",
+    data = {
+        "seriya": f"{context.user_data['seriya']}",
+        "date_from": f"{context.user_data['vaqtdan']}",
+        "date_to": f"{context.user_data['gacha']}",
+        "company_name": f"{context.user_data['company_name']}",
+        "phone_number": f"{context.user_data['phone']}",
+        "car_marka": f"{context.user_data['model'].upper()}",
+        "car_year": f"{context.user_data['yili']}",
+        "car_number": f"{context.user_data['davlat_raqami'].upper()}",
+        "car_dvigatel": f"{context.user_data['dvigatel_raqami'].upper()}",
+        "car_kuzov": f"{context.user_data['kuzov_raqami'].upper()}",
+        "driver": driver,
+        "seriya_card": f"{context.user_data['guvohnoma_seriya'].upper()}",
+        "seriya_number": f"{context.user_data['guvohnoma_raqami'].upper()}",
 
     }
     print(data)
 
     police(data)
     update.message.reply_text("Sizning guvohnomangiz yaratildi")
-    chat_id='@police_insurance'
+    chat_id = '@police_insurance'
     pdf_filename = f"insuranses/insurance-{context.user_data['seriya']}.pdf"
+    bot.send_message(chat_id=chat_id, text=msg)
+    bot.send_document(chat_id=chat_id, document=open(pdf_filename, 'rb'),
+                      caption=f"Insurance-{context.user_data['seriya']}.pdf")
     update.message.reply_document(document=open(pdf_filename, 'rb'))
     return '0'
 
 
-
-
 conv_handler = ConversationHandler(
-                entry_points=[CommandHandler('start', start_command),
+    entry_points=[CommandHandler('start', start_command),
                   ],
     states={
-        '0':  [MessageHandler(Filters.regex('^(New police)$'), New_police),CommandHandler('start', start_command),CommandHandler('cancel', New_police),
+        '0': [MessageHandler(Filters.regex('^(New police)$'), New_police), CommandHandler('start', start_command),
+              CommandHandler('cancel', New_police),
 
-
-               ],
-        '1':  [
-                CommandHandler('cancel', New_police),
-                CommandHandler('start', start_command),
-                MessageHandler(Filters.text, From_time),
-               ],
-        '2':  [CommandHandler('cancel', New_police),
+              ],
+        '1': [
+            CommandHandler('cancel', New_police),
+            CommandHandler('start', start_command),
+            MessageHandler(Filters.text, From_time),
+        ],
+        '2': [CommandHandler('cancel', New_police),
+              CommandHandler('start', start_command),
+              MessageHandler(Filters.text, Company_name),
+              ],
+        '3': [CommandHandler('cancel', New_police),
+              CommandHandler('start', start_command),
+              MessageHandler(Filters.text, Name),
+              ],
+        '4': [CommandHandler('cancel', New_police),
+              CommandHandler('start', start_command),
+              MessageHandler(Filters.text, Surname),
+              ],
+        '5': [CommandHandler('cancel', New_police),
+              CommandHandler('start', start_command),
+              MessageHandler(Filters.text, Father_name),
+              ],
+        '6': [CommandHandler('cancel', New_police),
+              CommandHandler('start', start_command),
+              MessageHandler(Filters.text, Phone_number),
+              ],
+        '7': [CommandHandler('cancel', New_police),
+              CommandHandler('start', start_command),
+              MessageHandler(Filters.text, Model),
+              ],
+        '8': [CommandHandler('cancel', New_police),
+              CommandHandler('start', start_command),
+              MessageHandler(Filters.text, Year),
+              ],
+        '9': [CommandHandler('cancel', New_police),
+              CommandHandler('start', start_command),
+              MessageHandler(Filters.text, Davlat_raqami),
+              ],
+        '10': [CommandHandler('cancel', New_police),
                CommandHandler('start', start_command),
-               MessageHandler(Filters.text, Company_name),
-                ],
-        '3':  [ CommandHandler('cancel', New_police),
-                CommandHandler('start', start_command),
-                MessageHandler(Filters.text, Name),
-                ],
-        '4':  [ CommandHandler('cancel', New_police),
-                CommandHandler('start', start_command),
-                MessageHandler(Filters.text, Surname),
-                ],
-        '5':  [ CommandHandler('cancel', New_police),
-                CommandHandler('start', start_command),
-                MessageHandler(Filters.text, Father_name),
-                ],
-        '6':  [ CommandHandler('cancel', New_police),
-                CommandHandler('start', start_command),
-                MessageHandler(Filters.text, Phone_number),
-                ],
-        '7':  [ CommandHandler('cancel', New_police),
-                CommandHandler('start', start_command),
-                MessageHandler(Filters.text, Model),
-                ],
-        '8':  [ CommandHandler('cancel', New_police),
-                CommandHandler('start', start_command),
-                MessageHandler(Filters.text, Year),
-                ],
-        '9':  [ CommandHandler('cancel', New_police),
-                CommandHandler('start', start_command),
-                MessageHandler(Filters.text, Davlat_raqami),
-                ],
-        '10': [ CommandHandler('cancel', New_police),
-                CommandHandler('start', start_command),
-                MessageHandler(Filters.text, Motor),
-                ],
-        '11': [ CommandHandler('cancel', New_police),
-                CommandHandler('start', start_command),
-                MessageHandler(Filters.text,Kuzov_raqami ),
-                ],
-        '12': [ CommandHandler('cancel', New_police),
-                CommandHandler('start', start_command),
-                MessageHandler(Filters.text, Guvohnoma_seriya),
-                ],
-        '13': [ CommandHandler('cancel', New_police),
-                CommandHandler('start', start_command),
-                MessageHandler(Filters.text, Guvohnoma_raqami),
-                ],
+               MessageHandler(Filters.text, Motor),
+               ],
+        '11': [CommandHandler('cancel', New_police),
+               CommandHandler('start', start_command),
+               MessageHandler(Filters.text, Kuzov_raqami),
+               ],
+        '12': [CommandHandler('cancel', New_police),
+               CommandHandler('start', start_command),
+               MessageHandler(Filters.text, Guvohnoma_seriya),
+               ],
+        '13': [CommandHandler('cancel', New_police),
+               CommandHandler('start', start_command),
+               MessageHandler(Filters.text, Guvohnoma_raqami),
+               ],
         'pdf': [
-                CommandHandler('start', start_command),
-                MessageHandler(Filters.regex('^(New police)$'), New_police),
-                 ],
+            CommandHandler('start', start_command),
+            MessageHandler(Filters.regex('^(New police)$'), New_police),
+        ],
 
-             },
-fallbacks = [
-    CommandHandler('cancel', start_command),
-])
+    },
+    fallbacks=[
+        CommandHandler('cancel', start_command),
+    ])
 updater = Updater(TOKEN, use_context=True)
 updater.dispatcher.add_handler(conv_handler)
 updater.start_polling()
 updater.idle()
-
-
