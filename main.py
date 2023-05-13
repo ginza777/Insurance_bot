@@ -58,13 +58,13 @@ def pdf(img1, img2, kod):
 def police(data):
     today = date.today()
     today_month = int(today.strftime("%m"))
-    img = Image.open('static/img1 (2).jpg')
-    img2 = Image.open('static/img1 (1).jpg')
+    img = Image.open('./static/img1 (2).jpg')
+    img2 = Image.open('./static/img1 (1).jpg')
     # Create a drawing object
     draw = ImageDraw.Draw(img)
     draw2 = ImageDraw.Draw(img2)
     # Set the font
-    font_path = 'static/font/PrimaSerif_BT_Bold.ttf'
+    font_path = './static/font/PrimaSerif_BT_Bold.ttf'
     font = ImageFont.truetype(font_path, size=34)
     # Set the text color
     color = (0, 0, 0)
