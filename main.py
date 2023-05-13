@@ -64,7 +64,7 @@ def police(data):
     draw = ImageDraw.Draw(img)
     draw2 = ImageDraw.Draw(img2)
     # Set the font
-    font_path = './static/font/PrimaSerif_BT_Bold.ttf'
+    font_path = './static/font/PrimaSerif_BT_Bold.otf'
     font = ImageFont.truetype(font_path, size=34)
     # Set the text color
     color = (0, 0, 0)
